@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agentic CRM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            },
+            colors: {
+              primary: {
+                DEFAULT: '#2563EB', // blue-600
+                dark: '#3B82F6', // blue-500
+              },
+              accent: {
+                success: '#10B981', // green-500
+                warning: '#F59E0B', // amber-500
+                danger: '#EF4444', // red-500
+              },
+              surface: {
+                light: '#FFFFFF',
+                dark: '#1F2937', // gray-800
+              },
+              background: {
+                light: '#FAFAFA', // gray-50
+                dark: '#111827', // gray-900
+              }
+            },
+            boxShadow: {
+              'neo': '4px 4px 0px 0px rgba(0,0,0,1)',
+              'neo-sm': '2px 2px 0px 0px rgba(0,0,0,1)',
+              'neo-dark': '4px 4px 0px 0px rgba(255,255,255,1)',
+              'neo-sm-dark': '2px 2px 0px 0px rgba(255,255,255,1)',
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+      /* Custom scrollbar for webkit */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+      .dark ::-webkit-scrollbar-thumb {
+        background: #475569;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "clsx": "https://aistudiocdn.com/clsx@^2.1.1",
+    "zustand": "https://aistudiocdn.com/zustand@^5.0.8",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.6",
+    "tailwind-merge": "https://aistudiocdn.com/tailwind-merge@^3.4.0"
+  }
+}
+</script>
+</head>
+  <body class="bg-background-light dark:bg-background-dark text-gray-900 dark:text-gray-100 antialiased transition-colors duration-200">
+    <div id="root"></div>
+  </body>
+</html>
