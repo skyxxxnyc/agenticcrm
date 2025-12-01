@@ -1,10 +1,11 @@
+
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/Table';
-import { MapPin, Star, Globe, Phone, ExternalLink, CheckCircle, XCircle, Briefcase, ArrowUpDown, ChevronUp, ChevronDown, Filter, X } from 'lucide-react';
-import { formatDate, cn } from '../lib/utils';
+import { MapPin, Star, Globe, Phone, CheckCircle, XCircle, Briefcase, ArrowUpDown, ChevronUp, ChevronDown, Filter, X } from 'lucide-react';
+import { cn } from '../lib/utils';
 import { SDRLead } from '../types';
 
 export const SDRBatches: React.FC = () => {
@@ -16,13 +17,11 @@ export const SDRBatches: React.FC = () => {
     direction: 'desc' 
   });
 
-  // Filter Leads
   const filteredLeads = sdrLeads.filter(lead => {
     if (selectedBatchId !== 'all' && lead.batchId !== selectedBatchId) return false;
     return true;
   });
 
-  // Sort Leads
   const sortedLeads = [...filteredLeads].sort((a, b) => {
     const aValue = a[sortConfig.key];
     const bValue = b[sortConfig.key];
@@ -62,7 +61,6 @@ export const SDRBatches: React.FC = () => {
         <Button onClick={() => window.location.hash = '#/icp'}>New Prospecting Run</Button>
       </div>
 
-      {/* Filter Bar */}
       <div className="flex items-center gap-2 mb-4 shrink-0 overflow-x-auto pb-2 no-scrollbar">
         <Filter className="w-4 h-4 text-gray-500" />
         <span className="text-sm font-bold mr-2">Batch:</span>
@@ -94,7 +92,6 @@ export const SDRBatches: React.FC = () => {
       </div>
 
       <div className="flex flex-1 gap-6 overflow-hidden">
-        {/* Table View */}
         <div className={cn(
           "flex-1 flex flex-col overflow-hidden transition-all duration-300",
           selectedLeadId ? "hidden lg:flex lg:w-1/2" : "w-full"
@@ -176,7 +173,6 @@ export const SDRBatches: React.FC = () => {
            </div>
         </div>
 
-        {/* Detail Panel */}
         {selectedLead && (
           <div className={cn(
              "w-full lg:w-1/2 flex flex-col bg-surface-light dark:bg-surface-dark border-2 border-black dark:border-white shadow-neo dark:shadow-neo-dark overflow-hidden absolute lg:static inset-0 lg:inset-auto z-20 h-full",
@@ -199,6 +195,11 @@ export const SDRBatches: React.FC = () => {
                           <span className="text-yellow-500 flex items-center text-xs font-bold">
                             <Star className="w-3 h-3 fill-current mr-0.5" /> {selectedLead.rating} ({selectedLead.reviews})
                           </span>
+                          {selectedLead.phone && (
+                            <span className="flex items-center gap-1 ml-2">
+                                <Phone className="w-3 h-3" /> {selectedLead.phone}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className="flex gap-2 shrink-0">
@@ -207,10 +208,10 @@ export const SDRBatches: React.FC = () => {
                               size="sm" 
                               variant="secondary" 
                               onClick={() => {
-                                window.location.hash = '#/companies';
+                                window.location.hash = '#/customers';
                               }}
                             >
-                              <Briefcase className="w-4 h-4 mr-2" /> View Company
+                              <Briefcase className="w-4 h-4 mr-2" /> View Customer
                             </Button>
                         ) : (
                             <>
@@ -242,7 +243,7 @@ export const SDRBatches: React.FC = () => {
                           onClick={() => window.open(selectedLead.googleMapsUrl, '_blank')} 
                           className="text-xs h-8 bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700"
                       >
-                          <MapPin className="w-3.5 h-3.5 mr-2" /> Google Maps Listing
+                          <MapPin className="w-3.5 h-3.5 mr-2" /> Google Maps
                       </Button>
                     )}
                     {selectedLead.website && (
@@ -250,17 +251,6 @@ export const SDRBatches: React.FC = () => {
                           <Globe className="w-3.5 h-3.5 mr-2" /> Visit Website
                       </Button>
                     )}
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 text-sm mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-gray-400" />
-                    {selectedLead.address || "No address"}
-                  </div>
-                  <div className="flex items-center gap-2">
-                     <Phone className="w-4 h-4 text-gray-400" />
-                     {selectedLead.phone || "No phone"}
-                  </div>
                 </div>
               </div>
 
@@ -271,20 +261,15 @@ export const SDRBatches: React.FC = () => {
                     {selectedLead.qualificationSummary}
                   </div>
                 </section>
-
                 <section>
-                   <h3 className="font-bold text-lg mb-2">Outreach Talking Points</h3>
+                   <h3 className="font-bold text-lg mb-2">Talking Points</h3>
                    <ul className="space-y-2">
-                     {selectedLead.talkingPoints.length > 0 ? (
-                       selectedLead.talkingPoints.map((tp, idx) => (
-                         <li key={idx} className="flex items-start gap-2 text-sm">
-                           <span className="w-1.5 h-1.5 bg-black dark:bg-white rounded-full mt-1.5 shrink-0" />
-                           {tp}
-                         </li>
-                       ))
-                     ) : (
-                       <li className="text-gray-500 italic text-sm">No specific talking points generated.</li>
-                     )}
+                     {selectedLead.talkingPoints.map((tp, idx) => (
+                       <li key={idx} className="flex items-start gap-2 text-sm">
+                         <span className="w-1.5 h-1.5 bg-black dark:bg-white rounded-full mt-1.5 shrink-0" />
+                         {tp}
+                       </li>
+                     ))}
                    </ul>
                 </section>
               </div>

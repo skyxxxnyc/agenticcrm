@@ -1,61 +1,69 @@
 
-import { Company, Contact, Deal, DealStage, ICPProfile, PackageTier, Priority, SDRBatch, SDRLead, Task, EmailTemplate } from '../types';
+import { Customer, Deal, DealStage, ICPProfile, PackageTier, Priority, SDRBatch, SDRLead, Task, EmailTemplate, Activity } from '../types';
 
-export const MOCK_COMPANIES: Company[] = [
+export const MOCK_CUSTOMERS: Customer[] = [
   {
     id: 'c1',
-    name: 'Apex Plumbing',
+    companyName: 'Apex Plumbing',
+    contactFirstName: 'Joe',
+    contactLastName: 'Plumber',
+    email: 'joe@apexplumbingnyc.com',
+    phone: '(212) 555-0123',
+    website: 'apexplumbingnyc.com',
     category: 'Plumber',
-    websiteUrl: 'apexplumbingnyc.com',
     rating: 4.2,
     reviewCount: 28,
+    status: 'PROSPECT',
     tags: ['local_service', 'outdated_site'],
     digitalGapScore: 65,
     icpFitScore: 80,
     painPoints: ['No online booking', 'Bad mobile view'],
-    salesOpportunities: ['Web redesign', 'Booking automation']
+    salesOpportunities: ['Web redesign', 'Booking automation'],
+    createdAt: new Date().toISOString()
   },
   {
     id: 'c2',
-    name: 'Elite Chiropractic',
+    companyName: 'Elite Chiropractic',
+    contactFirstName: 'Sarah',
+    contactLastName: 'Smith',
+    email: 'dr.sarah@elitechiro.com',
+    website: 'elitechiro.com',
     category: 'Chiropractor',
-    websiteUrl: 'elitechiro.com',
     rating: 4.8,
     reviewCount: 150,
+    status: 'CUSTOMER',
     tags: ['high_volume', 'good_reputation'],
     digitalGapScore: 30,
     icpFitScore: 90,
     painPoints: ['Manual review requests'],
-    salesOpportunities: ['Review automation', 'Email marketing']
+    salesOpportunities: ['Review automation', 'Email marketing'],
+    createdAt: new Date().toISOString()
   }
 ];
 
-export const MOCK_CONTACTS: Contact[] = [
+export const MOCK_ACTIVITIES: Activity[] = [
   {
-    id: 'ct1',
-    companyId: 'c1',
-    firstName: 'Joe',
-    lastName: 'Plumber',
-    email: 'joe@apexplumbingnyc.com',
-    status: 'ACTIVE',
-    title: 'Owner'
+    id: 'a1',
+    customerId: 'c1',
+    type: 'EMAIL',
+    title: 'Outreach Email Sent',
+    content: 'Sent initial audit proposal regarding website mobile responsiveness.',
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString()
   },
   {
-    id: 'ct2',
-    companyId: 'c2',
-    firstName: 'Sarah',
-    lastName: 'Smith',
-    email: 'dr.sarah@elitechiro.com',
-    status: 'LEAD',
-    title: 'Dr.'
+    id: 'a2',
+    customerId: 'c1',
+    type: 'SDR_FIND',
+    title: 'Discovered by SDR Agent',
+    content: 'Identified via Google Maps in "NYC Plumbers" batch. High digital gap detected.',
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString()
   }
 ];
 
 export const MOCK_DEALS: Deal[] = [
   {
     id: 'd1',
-    companyId: 'c1',
-    contactId: 'ct1',
+    customerId: 'c1',
     name: 'Apex Web Redesign',
     value: 5000,
     stage: DealStage.CONTACTED,
@@ -68,8 +76,7 @@ export const MOCK_DEALS: Deal[] = [
   },
   {
     id: 'd2',
-    companyId: 'c2',
-    contactId: 'ct2',
+    customerId: 'c2',
     name: 'Elite Review Automation',
     value: 12000,
     stage: DealStage.QUALIFIED,
@@ -79,17 +86,6 @@ export const MOCK_DEALS: Deal[] = [
     lastTouchDate: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
     nextAction: 'Schedule demo',
     nextActionDate: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString()
-  },
-  {
-    id: 'd3',
-    companyId: 'c1',
-    name: 'Another Deal Example',
-    value: 2500,
-    stage: DealStage.PROPOSAL,
-    priority: Priority.LOW,
-    packageFit: PackageTier.BASIC,
-    mqlScore: 60,
-    lastTouchDate: new Date().toISOString(),
   }
 ];
 
@@ -97,6 +93,7 @@ export const MOCK_TASKS: Task[] = [
   {
     id: 't1',
     dealId: 'd1',
+    customerId: 'c1',
     title: 'Draft follow-up for Apex',
     dueDate: new Date().toISOString(),
     priority: Priority.HIGH,

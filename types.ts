@@ -22,37 +22,49 @@ export enum Priority {
   HIGH = 'HIGH'
 }
 
-export interface Company {
+export interface Activity {
   id: string;
-  name: string;
-  category: string;
-  websiteUrl?: string;
-  address?: string;
-  phone?: string;
-  rating?: number;
-  reviewCount?: number;
-  tags: string[];
-  painPoints?: string[];
-  salesOpportunities?: string[];
-  digitalGapScore: number;
-  icpFitScore: number;
+  customerId?: string;
+  dealId?: string;
+  type: 'EMAIL' | 'CALL' | 'MEETING' | 'NOTE' | 'SYSTEM' | 'SDR_FIND';
+  title: string;
+  content: string;
+  timestamp: string; // ISO Date
 }
 
-export interface Contact {
+export interface Customer {
   id: string;
-  companyId?: string;
-  firstName: string;
-  lastName: string;
-  email: string;
+  // Identity
+  companyName: string;
+  contactFirstName?: string;
+  contactLastName?: string;
+  email?: string;
   phone?: string;
-  title?: string;
-  status: 'LEAD' | 'ACTIVE' | 'DORMANT' | 'LOST';
+  website?: string;
+  address?: string;
+  
+  // Metadata
+  category: string;
+  status: 'LEAD' | 'PROSPECT' | 'CUSTOMER' | 'CHURNED';
+  tags: string[];
+  
+  // Metrics
+  rating?: number;
+  reviewCount?: number;
+  digitalGapScore: number;
+  icpFitScore: number;
+  
+  // AI Intel
+  painPoints?: string[];
+  salesOpportunities?: string[];
+  qualificationSummary?: string;
+  
+  createdAt: string;
 }
 
 export interface Deal {
   id: string;
-  companyId: string;
-  contactId?: string;
+  customerId: string; // Linked to Customer
   name: string;
   value: number;
   stage: DealStage;
@@ -67,6 +79,7 @@ export interface Deal {
 export interface Task {
   id: string;
   dealId?: string;
+  customerId?: string;
   title: string;
   dueDate: string;
   priority: Priority;
@@ -111,7 +124,7 @@ export interface SDRLead {
   matchScore: number;
   qualificationSummary: string;
   talkingPoints: string[];
-  companyId?: string;
+  customerId?: string; // Links to created Customer on approval
 }
 
 export interface ChatMessage {

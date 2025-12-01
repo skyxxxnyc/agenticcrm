@@ -1,17 +1,17 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
-import { Check, Clock, Edit2, AlertTriangle, PlayCircle, Save, FileText, ChevronDown, Send as SendIcon, Loader, Sparkles } from 'lucide-react';
-import { formatDate, cn } from '../lib/utils';
+import { Check, Clock, Edit2, AlertTriangle, PlayCircle, Save, FileText, ChevronDown, Loader, Sparkles } from 'lucide-react';
+import { formatDate } from '../lib/utils';
 import { Priority, EmailTemplate } from '../types';
 import { gmailService } from '../services/gmail';
 import { generateOutreachEmail } from '../services/geminiService';
 
 export const DailyBrief: React.FC = () => {
-  const { deals, tasks, sdrBatches, emailTemplates, companies, contacts, addEmailTemplate, isGmailConnected } = useStore();
+  const { deals, sdrBatches, emailTemplates, customers, addEmailTemplate, isGmailConnected } = useStore();
   
   // State for template dropdowns per deal
   const [openTemplateDropdown, setOpenTemplateDropdown] = useState<string | null>(null);
@@ -32,13 +32,11 @@ export const DailyBrief: React.FC = () => {
   const handleGenerateDraft = async (deal: any) => {
       setIsGenerating(prev => ({ ...prev, [deal.id]: true }));
       
-      const contact = contacts.find(c => c.id === deal.contactId);
-      const company = companies.find(c => c.id === deal.companyId);
-      
-      const contactName = contact ? `${contact.firstName} ${contact.lastName}` : "Prospective Client";
-      const companyName = company ? company.name : "their company";
+      const customer = customers.find(c => c.id === deal.customerId);
+      const contactName = customer?.contactFirstName ? `${customer.contactFirstName} ${customer.contactLastName}` : "Client";
+      const companyName = customer ? customer.companyName : "their company";
 
-      const draft = await generateOutreachEmail(deal, contactName, companyName, company);
+      const draft = await generateOutreachEmail(deal, contactName, companyName, customer);
       setGeneratedDrafts(prev => ({ ...prev, [deal.id]: draft }));
       setIsGenerating(prev => ({ ...prev, [deal.id]: false }));
   };
@@ -49,7 +47,7 @@ export const DailyBrief: React.FC = () => {
       addEmailTemplate({
         id: `tpl-${Date.now()}`,
         name,
-        subject: "Follow up", // In a real app we'd parse this or ask for it
+        subject: "Follow up",
         body: content,
         category: 'Follow-up',
         tags: ['generated'],
@@ -64,19 +62,18 @@ export const DailyBrief: React.FC = () => {
      setOpenTemplateDropdown(null);
   };
 
-  const handleApproveAndSend = async (dealId: string, contactEmail: string | undefined) => {
+  const handleApproveAndSend = async (dealId: string, customerId: string) => {
     if (!isGmailConnected) {
         alert("Please connect Gmail in Settings or Onboarding first.");
         return;
     }
-    // For demo, we might use a mock email if contact doesn't have one, but we prefer real data structure
-    const targetEmail = contactEmail || "demo@example.com";
+    const customer = customers.find(c => c.id === customerId);
+    const targetEmail = customer?.email || "demo@example.com";
 
     setSendingState(prev => ({ ...prev, [dealId]: true }));
     try {
         await gmailService.sendEmail(targetEmail, "Follow Up", generatedDrafts[dealId] || "Draft");
         alert("Email sent successfully!");
-        // Here we would typically move deal stage or update lastTouchDate
     } catch (e) {
         alert("Failed to send email.");
     } finally {
@@ -113,7 +110,6 @@ export const DailyBrief: React.FC = () => {
               const draftContent = generatedDrafts[deal.id] || "";
               const isSending = sendingState[deal.id];
               const generating = isGenerating[deal.id];
-              const contact = contacts.find(c => c.id === deal.contactId);
 
               return (
                 <Card key={deal.id} className="border-l-8 border-l-red-500">
@@ -193,7 +189,7 @@ export const DailyBrief: React.FC = () => {
                         size="sm" 
                         variant="primary" 
                         className="w-full sm:w-auto"
-                        onClick={() => handleApproveAndSend(deal.id, contact?.email)}
+                        onClick={() => handleApproveAndSend(deal.id, deal.customerId)}
                         disabled={isSending || !draftContent}
                       >
                         {isSending ? 'Sending...' : (

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Factory, Kanban, Briefcase, Settings, MessageSquare, Menu, X, Sun, Moon, FileText, Loader } from 'lucide-react';
+import { LayoutDashboard, Users, Factory, Kanban, Settings, MessageSquare, Menu, Sun, Moon, FileText, Loader } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { cn } from '../lib/utils';
 import { CommandCenter } from '../pages/CommandCenter';
@@ -21,8 +21,7 @@ export const Layout: React.FC = () => {
     { icon: Users, label: 'ICP Profiles', path: '/icp' },
     { icon: Factory, label: 'SDR Batches', path: '/sdr' },
     { icon: Kanban, label: 'Pipeline', path: '/pipeline' },
-    { icon: Briefcase, label: 'Companies', path: '/companies' },
-    { icon: Users, label: 'Contacts', path: '/contacts' },
+    { icon: Users, label: 'Customers', path: '/customers' },
     { icon: FileText, label: 'Templates', path: '/templates' },
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];

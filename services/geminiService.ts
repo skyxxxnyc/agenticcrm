@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, FunctionDeclaration, Type } from "@google/genai";
-import { ICPProfile, Deal } from "../types";
+import { ICPProfile, Deal, Customer } from "../types";
 
 let client: GoogleGenAI | null = null;
 
@@ -8,7 +8,7 @@ const getClient = () => {
   if (client) return client;
   const apiKey = process.env.API_KEY;
   if (!apiKey) {
-    console.warn("API_KEY not found in environment variables. Gemini features will be disabled.");
+    console.warn("API_KEY not found. Gemini features disabled.");
     return null;
   }
   client = new GoogleGenAI({ apiKey });
@@ -56,8 +56,6 @@ export const getCommandCenterResponse = async (
     };
   }
 
-  // Filter out system messages from history as 'history' prop doesn't support them directly in all SDK versions, 
-  // or use config.systemInstruction for the persistent system prompt.
   const chatHistory = history
     .filter(h => h.role !== 'system')
     .map(h => ({
@@ -76,7 +74,6 @@ export const getCommandCenterResponse = async (
 
   try {
     const result = await chat.sendMessage({ message: userMessage });
-    
     return {
       text: result.text || "I've processed that.",
       functionCalls: result.functionCalls || []
@@ -87,33 +84,10 @@ export const getCommandCenterResponse = async (
   }
 };
 
-export const analyzeDeal = async (deal: any) => {
-  const ai = getClient();
-  if (!ai) return "AI analysis unavailable (Missing Key).";
-
-  const prompt = `
-    Analyze this deal and suggest the next best action to move it forward.
-    Deal: ${JSON.stringify(deal)}
-    
-    Output a concise suggestion (max 2 sentences).
-  `;
-
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt
-    });
-    return response.text;
-  } catch (e) {
-    return "Could not analyze deal.";
-  }
-};
-
 export const generateSDRLeads = async (icp: ICPProfile) => {
     const ai = getClient();
     if (!ai) return null;
 
-    // Use Maps tool to find grounding for the lead generation
     const prompt = `
     Find 5 real businesses that match the profile: "${icp.categories.join(', ')} in ${icp.geography}".
     
@@ -126,14 +100,12 @@ export const generateSDRLeads = async (icp: ICPProfile) => {
     - rating: number
     - reviews: number
     - address: string
-    - website: string | null (The actual business website URL. Look for it!)
-    - phone: string | null (The business phone number)
-    - qualificationSummary: string (Analyze why they fit the ICP: ${icp.name}. Mention gaps like low reviews or no website if apparent)
-    - talkingPoints: string[] (3 specific sales talking points based on their public data)
-    - tier: "A" | "B" | "C" (A is high priority: e.g. good business but bad digital presence. C is already perfect or too small)
+    - website: string | null
+    - phone: string | null
+    - qualificationSummary: string (Analyze why they fit the ICP: ${icp.name}.)
+    - talkingPoints: string[] (3 specific sales talking points)
+    - tier: "A" | "B" | "C" (A is high priority)
     - matchScore: number (0-100)
-    
-    IMPORTANT: Provide real data.
     `;
 
     try {
@@ -146,15 +118,12 @@ export const generateSDRLeads = async (icp: ICPProfile) => {
         });
         
         let text = response.text || "[]";
-        // Sanitize markdown code blocks if present
         text = text.replace(/```json/g, '').replace(/```/g, '').trim();
         
-        // Extract grounding metadata to get valid Google Maps URLs
         const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
         
         let leads: any[] = [];
         try {
-            // Attempt to find the array in the text if there's extra conversational text
             const jsonStart = text.indexOf('[');
             const jsonEnd = text.lastIndexOf(']');
             if (jsonStart !== -1 && jsonEnd !== -1) {
@@ -166,22 +135,27 @@ export const generateSDRLeads = async (icp: ICPProfile) => {
             return null;
         }
 
-        // Enhance leads with grounding data (Maps URLs)
         leads = leads.map(lead => {
-             // Find a chunk that loosely matches the company name
-             // Grounding chunks often contain the title and uri
+             // Find matching chunk. Maps chunks are preferred.
              const chunk = groundingChunks.find(c => {
-                 if (!c.web?.title) return false;
-                 return c.web.title.toLowerCase().includes(lead.companyName.toLowerCase()) || 
-                        lead.companyName.toLowerCase().includes(c.web.title.toLowerCase());
+                 const title = c.maps?.title || c.web?.title || "";
+                 return title && (
+                    title.toLowerCase().includes(lead.companyName.toLowerCase()) || 
+                    lead.companyName.toLowerCase().includes(title.toLowerCase())
+                 );
              });
 
-             // If we found a chunk with a maps URI, use it.
-             // If not, try to see if the address or other chunks align.
-             // For now, we take the best guess.
+             // Extract Maps URI
+             let googleMapsUrl = chunk?.maps?.uri;
+             
+             // Fallback if no direct maps URI, construct a search URL
+             if (!googleMapsUrl) {
+                 googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lead.companyName + ' ' + (lead.address || icp.geography))}`;
+             }
+
              return {
                  ...lead,
-                 googleMapsUrl: chunk?.web?.uri || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lead.companyName + ' ' + lead.address)}`
+                 googleMapsUrl
              };
         });
         
@@ -219,8 +193,7 @@ export const generateOutreachEmail = async (deal: Deal, contactName: string, com
     Context:
     ${contextStr}
     
-    The email should be casual but professional, asking for a quick update or offering value based on the pain points. 
-    Max 100 words. Do not include subject line in the body.
+    The email should be casual but professional. Max 100 words.
     `;
 
     try {
